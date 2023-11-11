@@ -11,7 +11,7 @@ This Python program fetches information about open-source components that have r
 
 - **Data Retrieval**: Utilizes the endoflife.date API to fetch information on open-source components.
 - **Excel Export**: Generates an Excel spreadsheet with details such as product name, life cycle, and EOL date.
-- **Progress Bar**: Includes a visual progress bar using the `tqdm` library to track the export progress.
+- **Progress Bar**: Includes a visual progress bar to track the export progress.
 - **Customizable**: Easily adaptable for different use cases and integration into other projects.
 
 ## Usage
@@ -19,8 +19,8 @@ This Python program fetches information about open-source components that have r
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/opensource-eol-checker.git
-   cd opensource-eol-checker
+   git clone https://github.com/SCR1P7K1DD13/end-of-life.git
+   cd end-of-life
    ```
 
 2. Install dependencies:
@@ -32,7 +32,7 @@ This Python program fetches information about open-source components that have r
 3. Run the program:
 
    ```bash
-   python main.py
+   python endoflife.py
    ```
 
    The program will fetch EOL information and export it to an Excel file (`output.xlsx` by default).

@@ -1,56 +1,58 @@
 import json
-import urllib3
+import aiohttp
+import asyncio
 from openpyxl import Workbook
-from tqdm import tqdm  # Import tqdm for the progress bar
+from tqdm import tqdm
+import requests
+import logging
+import warnings
 
-# Disable warnings for certificate verification (for simplicity, not recommended for production)
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# Suppress warnings
+requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
+logging.getLogger("urllib3").setLevel(logging.ERROR)
+logging.getLogger("aiohttp").setLevel(logging.ERROR)
 
-# Step 1: Make a request to https://endoflife.date/api/all.json
-all_products_url = "https://endoflife.date/api/all.json"
-http = urllib3.PoolManager()
-response_all_products = http.request('GET', all_products_url)
+# Suppress RequestsDependencyWarning
+warnings.filterwarnings("ignore", category=requests.exceptions.RequestsDependencyWarning)
 
-# Check if the request was successful (status code 200)
-if response_all_products.status == 200:
-    # Parse the JSON response
-    all_products_data = json.loads(response_all_products.data.decode('utf-8'))
-
-    # Set the export path
-    export_path = 'output.xlsx'
-
-    # Create an Excel workbook and get the active sheet
-    wb = Workbook()
-    ws = wb.active
-
-    # Add headers to the Excel sheet
-    ws.append(['Product', 'Cycle', 'EOL'])
-
-    # Step 2: Iterate over the products and make individual requests
-    for product in tqdm(all_products_data, desc="Exporting", unit="product"):
-        # Make a request to https://endoflife.date/api/{product}.json
-        product_url = f"https://endoflife.date/api/{product}.json"
-        response_product = http.request('GET', product_url)
-
-        # Check if the request was successful (status code 200)
-        if response_product.status == 200:
-            # Parse the JSON response
-            json_output = json.loads(response_product.data.decode('utf-8'))
-
-            for entry in json_output:
-                cycle_value = entry.get('cycle')
-                eol_value = entry.get('eol')
-
-                # Add data to the Excel sheet
-                ws.append([product, cycle_value, eol_value])
+async def fetch_product(session, product):
+    product_url = f"https://endoflife.date/api/{product}.json"
+    async with session.get(product_url, ssl=False) as response:
+        if response.status == 200:
+            return await response.json()
         else:
-            print(f"Error fetching data for {product}. Status code: {response_product.status}")
+            print(f"Error fetching data for {product}. Status code: {response.status}")
+            return None
 
-    # Save the Excel file
-    wb.save(export_path)
+async def main():
+    all_products_url = "https://endoflife.date/api/all.json"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(all_products_url, ssl=False) as response_all_products:
+            if response_all_products.status == 200:
+                all_products_data = await response_all_products.json()
 
-    # Print the export path
-    print(f"Exported data to: {export_path}")
+                export_path = 'output.xlsx'
+                wb = Workbook()
+                ws = wb.active
+                ws.append(['Product', 'Cycle', 'EOL'])
 
-else:
-    print(f"Error fetching all products data. Status code: {response_all_products.status}")
+                tasks = []
+                for product in tqdm(all_products_data, desc="Exporting", unit="product"):
+                    tasks.append(fetch_product(session, product))
+
+                results = await asyncio.gather(*tasks)
+
+                for product, result in zip(all_products_data, results):
+                    if result:
+                        for entry in result:
+                            cycle_value = entry.get('cycle')
+                            eol_value = entry.get('eol')
+                            ws.append([product, cycle_value, eol_value])
+
+                wb.save(export_path)
+                print(f"Exported data to: {export_path}")
+            else:
+                print(f"Error fetching all products data. Status code: {response_all_products.status}")
+
+if __name__ == "__main__":
+    asyncio.run(main())

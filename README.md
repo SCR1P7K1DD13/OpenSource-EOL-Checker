@@ -19,8 +19,8 @@ This Python program fetches information about open-source components that have r
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/SCR1P7K1DD13/end-of-life.git
-   cd end-of-life
+   git clone https://github.com/SCR1P7K1DD13/OpenSource-EOL-Checker.git
+   cd OpenSource-EOL-Checker
    ```
 
 2. Install dependencies:

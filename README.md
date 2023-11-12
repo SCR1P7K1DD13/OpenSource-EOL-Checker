@@ -11,7 +11,6 @@ This Python program fetches information about open-source components that have r
 
 - **Data Retrieval**: Utilizes the endoflife.date API to fetch information on open-source components.
 - **Excel Export**: Generates an Excel spreadsheet with details such as product name, life cycle, and EOL date.
-- **Progress Bar**: Includes a visual progress bar to track the export progress.
 - **Customizable**: Easily adaptable for different use cases and integration into other projects.
 
 ## Usage
